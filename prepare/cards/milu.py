@@ -6,8 +6,8 @@ from unitxt.operators import (
     FilterByCondition,
     ListFieldValues,
     MapInstanceValues,
-    Set,
     Rename,
+    Set,
 )
 from unitxt.splitters import RenameSplits
 from unitxt.test_utils.card import test_card
@@ -33,10 +33,9 @@ subtasks = [
     "Environmental Sciences",
     "Health & Medicine",
     "Law & Governance",
-    "Math and Sciences",
+    "Science",
     "Social Sciences",
 ]
-
 
 is_first = True
 for language in languages:
@@ -87,6 +86,7 @@ for language in languages:
                 "MILU (Multi-task Indic Language Understanding Benchmark) is a comprehensive evaluation dataset designed to assess the performance of Large Language Models (LLMs) across 11 Indic languages. It spans 8 domains and 41 subjects, reflecting both general and culturally specific knowledge from India. See the full description on the dataset page: https://huggingface.co/datasets/ai4bharat/MILU."
             ),
         )
+
         if is_first:
             test_card(card, strict=False)
             is_first = False

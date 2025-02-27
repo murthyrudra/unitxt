@@ -3,7 +3,7 @@
     "loader": {
         "__type__": "load_hf",
         "path": "ai4bharat/MILU",
-        "data_dir": "Odia",
+        "data_dir": "Kannada",
         "splits": [
             "validation",
             "test"
@@ -13,7 +13,7 @@
         {
             "__type__": "filter_by_condition",
             "values": {
-                "domain": "Math and Sciences"
+                "domain": "Science"
             },
             "condition": "eq"
         },
@@ -61,7 +61,7 @@
         {
             "__type__": "set",
             "fields": {
-                "topic": "Math and Sciences"
+                "topic": "Science"
             }
         }
     ],
@@ -74,7 +74,7 @@
         "arxiv": [
             "2411.02538"
         ],
-        "language": "or",
+        "language": "kn",
         "language_creators": "expert-generated",
         "license": "CC BY 4.0",
         "multilinguality": "multilingual",

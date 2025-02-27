@@ -6,7 +6,6 @@ from unitxt.blocks import (
 from unitxt.catalog import add_to_catalog
 from unitxt.operators import (
     CastFields,
-    MapInstanceValues,
     FilterByCondition,
     Rename,
 )

@@ -296,7 +296,8 @@ class LoadHF(LazyLoader):
                         download_config=DownloadConfig(
                             max_retries=settings.loaders_max_retries,
                             # extract_on_the_fly=True,
-                        ),token=True,
+                        ),
+                        token=True,
                     )
                 except ValueError as e:
                     if "trust_remote_code" in str(e):
