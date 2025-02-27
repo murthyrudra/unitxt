@@ -565,6 +565,10 @@ class HFAutoModelInferenceEngine(HFInferenceEngineBase):
             truncation=True,
         )
 
+        # Set pad_token if it doesn't exist
+        if self.processor.pad_token is None:
+            self.processor.pad_token = self.processor.eos_token
+
     def _init_model(self):
         from transformers import (
             AutoConfig,
@@ -632,9 +636,11 @@ class HFAutoModelInferenceEngine(HFInferenceEngineBase):
                 output=final_outputs[i],
                 output_tokens=len(string_tokens[i]),
                 inp=dataset[i]["source"],
-                inp_tokens=len(tokenized_inputs.encodings[i].tokens)
-                if tokenized_inputs.encodings is not None
-                else None,
+                inp_tokens=(
+                    len(tokenized_inputs.encodings[i].tokens)
+                    if tokenized_inputs.encodings is not None
+                    else None
+                ),
                 return_meta_data=return_meta_data,
             )
             for i in range(len(sequences))
@@ -815,6 +821,10 @@ class HFPeftInferenceEngine(HFAutoModelInferenceEngine):
             self.peft_config.base_model_name_or_path
         )
 
+        # Set pad_token if it doesn't exist
+        if self.processor.pad_token is None:
+            self.processor.pad_token = self.processor.eos_token
+
     def _init_model(self):
         from peft import AutoPeftModelForCausalLM, AutoPeftModelForSeq2SeqLM
         from transformers import AutoConfig
@@ -956,9 +966,13 @@ class HFPipelineBasedInferenceEngine(
         outputs = self.model([instance["source"] for instance in dataset])
 
         return [
-            self.get_return_object(output[0], instance["source"], return_meta_data)
-            if isinstance(output, list)
-            else self.get_return_object(output, instance["source"], return_meta_data)
+            (
+                self.get_return_object(output[0], instance["source"], return_meta_data)
+                if isinstance(output, list)
+                else self.get_return_object(
+                    output, instance["source"], return_meta_data
+                )
+            )
             for output, instance in zip(outputs, dataset)
         ]
 
@@ -1215,9 +1229,9 @@ class OptionSelectingByLogProbsInferenceEngine:
             for option in instance["task_data"]["options"]
         ]
 
-        dataset_with_options_logprobs: List[
-            List[Dict[str, Union[float, str]]]
-        ] = self.get_options_log_probs(dataset_with_options)
+        dataset_with_options_logprobs: List[List[Dict[str, Union[float, str]]]] = (
+            self.get_options_log_probs(dataset_with_options)
+        )
 
         dataset_iterator = iter(dataset_with_options_logprobs)
 
@@ -1623,6 +1637,7 @@ class OpenAiInferenceEngine(
     @run_with_imap
     def _get_chat_completion(self, instance, return_meta_data):
         import openai
+
         messages = self.to_messages(instance)
         try:
             response = self.client.chat.completions.create(
@@ -1634,13 +1649,17 @@ class OpenAiInferenceEngine(
             return self.get_return_object(prediction, response, return_meta_data)
         # catch in case of content_filtering failure
         except openai.BadRequestError as e:
-            logging.error(f"Error predicting instance {messages}:{e}. Returning empty prediction")
-            return TextGenerationInferenceOutput(prediction = "-", input_tokens=0, output_tokens=0)
-
+            logging.error(
+                f"Error predicting instance {messages}:{e}. Returning empty prediction"
+            )
+            return TextGenerationInferenceOutput(
+                prediction="-", input_tokens=0, output_tokens=0
+            )
 
     @run_with_imap
     def _get_logprobs(self, instance, return_meta_data):
         import openai
+
         messages = self.to_messages(instance)
         try:
             response = self.client.chat.completions.create(
@@ -1661,13 +1680,13 @@ class OpenAiInferenceEngine(
             return self.get_return_object(pred_output, response, return_meta_data)
         # catch in case of content_filtering failure
         except openai.BadRequestError as e:
-            logging.error(f"Error predicting instance {messages}:{e}. Returning empty prediction")
-            prediction = [{"top_tokens": [
-                        {"text": "-", "logprob": 0}
-                    ]
-            }]
-            return TextGenerationInferenceOutput(prediction=prediction, input_tokens=0, output_tokens=0)
-
+            logging.error(
+                f"Error predicting instance {messages}:{e}. Returning empty prediction"
+            )
+            prediction = [{"top_tokens": [{"text": "-", "logprob": 0}]}]
+            return TextGenerationInferenceOutput(
+                prediction=prediction, input_tokens=0, output_tokens=0
+            )
 
     def get_return_object(self, predict_result, response, return_meta_data):
         if return_meta_data:
@@ -2005,11 +2024,11 @@ class WMLInferenceEngineBase(
         self._verify_wml_credentials(self.credentials)
         return APIClient(
             credentials=Credentials(
-                api_key=self.credentials["api_key"],
-                url=self.credentials["url"]
+                api_key=self.credentials["api_key"], url=self.credentials["url"]
             ),
             project_id=self.credentials.get("project_id", None),
-            space_id=self.credentials.get("space_id", None))
+            space_id=self.credentials.get("space_id", None),
+        )
 
     @staticmethod
     def _read_wml_credentials_from_env() -> CredentialsWML:
@@ -2526,9 +2545,9 @@ class WMLInferenceEngineChat(WMLInferenceEngineBase, WMLChatParamsMixin):
             return TextGenerationInferenceOutput(
                 prediction=predict_result,
                 input_tokens=result["usage"]["prompt_tokens"],
-                output_tokens=len(predict_result)
-                if isinstance(predict_result, list)
-                else None,
+                output_tokens=(
+                    len(predict_result) if isinstance(predict_result, list) else None
+                ),
                 model_name=self.model_name or self.deployment_id,
                 inference_type=self.label,
                 stop_reason=result["choices"][0]["finish_reason"],
