@@ -67,8 +67,11 @@ for language in languages:
                 ),
                 Set({"topic": subtask}),
             ],
-            task="tasks.qa.multiple_choice.with_topic",
-            templates=["templates.qa.multiple_choice.with_topic.all"],
+            task="tasks.qa.multiple_choice.open",
+            templates=[
+                "templates.qa.multiple_choice.open.helm",
+                "templates.qa.multiple_choice.open.lm_eval_harness",
+            ],
             __tags__={
                 "annotations_creators": "no-annotation",
                 "arxiv": ["2411.02538"],
